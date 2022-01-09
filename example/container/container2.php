@@ -63,13 +63,13 @@ class Vegetables
     // 获取青椒
     public function getPepper(): string
     {
-        return '切好的青椒';
+        return '青椒';
     }
 
     // 获取西红柿
     public function getTomato(): string
     {
-        return '切好的西红柿';
+        return '西红柿';
     }
 }
 
