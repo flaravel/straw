@@ -9,6 +9,7 @@
 只能在购买一个购物袋装下这些东西回家，那么这个购物袋就是装下这对象的容器
 ```
 在现实生活中，对容器简最简单的理解就是：**一个可以装下的许多对象的工具，并且可以从容器中取出你想要的对象**
+
 比如去超市买菜，购物袋就是一个容器，可以装下各种蔬菜肉类等，回家之后，你想要某个东西时，可以从该容器中取出你要的即可
 
 用代码实现上面例子:
@@ -296,7 +297,7 @@ $menu->pepperWithStreakyMeat(); // 制作青椒炒肉方法
 
 接下来要改造这个容器类，将菜谱类需要的蔬菜，肉，调味料一起注入到该类中
 
-> 利用反射 ReflectionClass 实现注入，官方文档 https://www.php.net/manual/zh/book.reflection.php
+> 利用反射 ReflectionClass 实现依赖注入，官方文档 https://www.php.net/manual/zh/book.reflection.php
 
 改造后的代码实例：
 
