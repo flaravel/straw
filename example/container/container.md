@@ -404,7 +404,7 @@ class Container
             // 2.判断是否设置了默认参数，设置了就直接使用当前的默认参数
             } elseif ($parameter->isDefaultValueAvailable()) {
                 $result[] = $parameter->getDefaultValue();
-            // 3. 设置了参数，但是没有默认值就返回异常（这种情况需要获取容器对象的时候传入对应的参数）
+            // 3. 设置了参数，但是没有默认值就返回异常（这种情况需要获取容器对象的时候传入对应的参数,下文在继续更新）
             } else {
                 throw new Exception("依赖参数异常 $parameter, 缺少必填参数");
             }
