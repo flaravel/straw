@@ -1,0 +1,30 @@
+{
+    "name": "straw/straw",
+    "description": "Start Learning PHP",
+    "autoload": {
+        "psr-4": {
+            "Straw\\": "src/",
+            "Tests\\": "tests/"
+        },
+        "files": [
+            "src/helpers.php"
+        ]
+    },
+    "authors": [
+        {
+            "name": "flaravel",
+            "email": "flaravel7@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=8.1",
+        "ext-mysqli": "*",
+        "psr/container": "2.0.x-dev",
+        "symfony/var-dumper": "6.1.x-dev"
+    },
+    "require-dev":{
+        "squizlabs/php_codesniffer": "*",
+        "phpunit/phpunit": "^8.5"
+    }
+}
