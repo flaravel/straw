@@ -458,7 +458,7 @@ $container->bind('menu', Menu::class);
 $menu = $container->get('menu');  // 正常注入依赖，肉，蔬菜，调味料
 $menu->pepperWithStreakyMeat(); // 制作青椒炒肉方法
 ```
-最终上里代码输出：
+最终以上代码输出：
 ```text
 先拿出切好的->五花肉
 然后拿出切好的->青椒
