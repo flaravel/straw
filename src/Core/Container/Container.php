@@ -93,7 +93,7 @@ class Container implements StdContainerInterface
      */
     public function has(string $id): bool
     {
-        return isset($this->bindings[$id]);
+        return isset($this->bindings[$id]) || isset($this->instances[$id]);
     }
 
     /**
