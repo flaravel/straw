@@ -11,19 +11,6 @@ use ReflectionNamedType;
 class Util
 {
     /**
-     * Return the default value of the given value.
-     *
-     * From global value() helper in Illuminate\Support.
-     *
-     * @param  mixed  $value
-     * @return mixed
-     */
-    public static function unwrapIfClosure($value)
-    {
-        return $value instanceof Closure ? $value() : $value;
-    }
-
-    /**
      * Get the class name of the given parameter's type, if possible.
      *
      * From Reflector::getParameterClassName() in Illuminate\Support.
@@ -33,8 +20,10 @@ class Util
      */
     public static function getParameterClassName($parameter)
     {
+        // 获取当前参数类型
         $type = $parameter->getType();
 
+        // 检测是否设置类参数类型，如果设置就返回对应的类型对象，否则返回NULL, 并且检测是否为内置函数，
         if (! $type instanceof ReflectionNamedType || $type->isBuiltin()) {
             return null;
         }

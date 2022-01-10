@@ -60,13 +60,15 @@ class Container
         // 获取当前对象的构造函数，
         $constructor = $reflector->getConstructor();
 
-        // 如果为空，说明该对象构造函数无注参数，则直接new 当前对象并返回
-        // 如果存在参数，则获取构造函数参数，并且解析参数是否为对象还是普通参数
+        // 如果为空，当前对象无构造函数，则直接new 当前对象并返回
         if (is_null($constructor)) {
             $object = new $concrete();
         } else {
+            // 如果存在构造函数，则解析构造函数是否有参数，在检测当前参数类型，一次注入到当前对象中
+
             // 返回一个数组
             $parameters = $constructor->getParameters();
+
             // 解析构造函数的参数
             $instances = $this->resolveDependencies($parameters);
             $object = $reflector->newInstanceArgs($instances);

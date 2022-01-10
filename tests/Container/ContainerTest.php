@@ -3,7 +3,9 @@
 namespace Tests\Container;
 
 use PHPUnit\Framework\TestCase;
+use Tests\Fake\FakeDbConnection;
 use Straw\Core\Container\Container;
+use Tests\Fake\FakeRedisConnection;
 
 class ContainerTest extends TestCase
 {
@@ -28,5 +30,15 @@ class ContainerTest extends TestCase
         $class = new \stdClass();
         $this->container->bind(get_class($class));
         $this->assertInstanceOf(get_class($class), $this->container->get(get_class($class)));
+    }
+
+    public function testContainerClassBindConcreteSingleton()
+    {
+        $this->container->singleton(FakeDbConnection::class);
+
+        $this->assertInstanceOf(FakeDbConnection::class, $this->container->make(FakeDbConnection::class));
+
+        $this->container->singleton(FakeRedisConnection::class);
+        $this->assertInstanceOf(FakeRedisConnection::class, $this->container->make(FakeRedisConnection::class));
     }
 }

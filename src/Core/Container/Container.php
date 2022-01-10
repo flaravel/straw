@@ -3,7 +3,9 @@
 namespace Straw\Core\Container;
 
 use Closure;
+use Exception;
 use ReflectionClass;
+use TypeError;
 use ReflectionException;
 use ReflectionParameter;
 use Straw\Constructs\Container\StdContainerInterface;
@@ -11,38 +13,47 @@ use Straw\Constructs\Container\StdContainerInterface;
 class Container implements StdContainerInterface
 {
     /**
-     * 单例
-     *
-     * @var static
+     * @var Container|null
      */
-    protected static $instance;
+    private static ?Container $instance = null;
 
 
     /**
+     * 解析后对单例对象
+     *
      * @var array
      */
     protected array $instances;
 
     /**
-     * 绑定的注入对象
+     * 容器绑定的对象
      *
      * @var array
      */
     protected array $bindings;
 
+
     /**
-     * 保存传入的参数
+     * 解析后对对象
+     *
+     * @var bool[]
+     */
+    protected array $resolved = [];
+
+    /**
+     * 传入的参数
      *
      * @var array
      */
     protected array $with = [];
 
+
     /**
-     * 获取容器实例(单例)
+     * 获取容器的实例
      *
-     * @return static
+     * @return Container|null
      */
-    public static function getInstance(): Container
+    public static function getInstance(): ?Container
     {
         if (is_null(static::$instance)) {
             static::$instance = new static();
@@ -51,16 +62,26 @@ class Container implements StdContainerInterface
     }
 
     /**
-     * 获取容器实例
+     * {@inheritdoc}
      *
      * @param string $id
      *
      * @return mixed
-     * @throws BindingResolutionException|ReflectionException
+     * @throws BindingResolutionException
+     * @throws EntryNotFoundException
+     * @throws ReflectionException
      */
     public function get(string $id): mixed
     {
-        return $this->resolve($id);
+        try {
+            return $this->resolve($id);
+        } catch (Exception $e) {
+            // 如果有发现注入容器的对象直接抛出异常
+            if ($this->has($id)) {
+                throw $e;
+            }
+            throw new EntryNotFoundException($id, $e->getCode(), $e);
+        }
     }
 
     /**
@@ -82,7 +103,7 @@ class Container implements StdContainerInterface
      * @param array $parameters
      *
      * @return mixed
-     * @throws BindingResolutionException
+     * @throws BindingResolutionException|ReflectionException
      */
     public function make($abstract, array $parameters = []): mixed
     {
@@ -91,21 +112,49 @@ class Container implements StdContainerInterface
 
 
     /**
-     * 向容器注册绑定
+     * 绑定单例对象
      *
-     * @param mixed $abstract
-     * @param null $concrete
-     * @param bool $shared
+     * @param string $abstract
+     * @param Closure|string|null $concrete
+     *
+     * @return void
      */
-    public function bind(mixed $abstract, $concrete = null, bool $shared = false)
+    public function singleton(string $abstract, Closure|string $concrete = null)
     {
+        $this->bind($abstract, $concrete, true);
+    }
+
+
+    /**
+     * 向容器注册绑定对象
+     *
+     * @param string $abstract
+     * @param Closure|string|null $concrete
+     * @param bool $shared
+     *
+     * @return void
+     * @throws TypeError
+     */
+    public function bind(string $abstract, Closure|string $concrete = null, bool $shared = false)
+    {
+        $this->dropStaleInstances($abstract);
+
         // 如果为空就将传的注入容器的key当作注入对象
         if (is_null($concrete)) {
             $concrete = $abstract;
         }
-        // 为了方便操作，将注入的类转为闭包函数
+
+        // 如果注入的对象不是闭包，则将其转为闭包函数
         if (!$abstract instanceof Closure) {
+            if (! is_string($concrete)) {
+                $errorMsg = "self::class . '::bind():Argument #2 ($concrete) must be of type Closure|string|null";
+                throw new TypeError($errorMsg);
+            }
             $concrete = function (Container $container, array $parameters = []) use ($abstract, $concrete) {
+                if ($abstract == $concrete) {
+                    return $container->build($concrete);
+                }
+
                 return $container->resolve($concrete, $parameters);
             };
         }
@@ -113,34 +162,52 @@ class Container implements StdContainerInterface
         $this->bindings[$abstract] = compact('concrete', 'shared');
     }
 
+
+    /**
+     * 当重新绑定时，删除容器里面的单例对象
+     *
+     * @param string $abstract
+     *
+     * @return void
+     */
+    protected function dropStaleInstances(string $abstract)
+    {
+        unset($this->instances[$abstract]);
+    }
+
     /**
      * 从容器中解析给定的类型, 如果构造函数中存在参数，那么会根据类型进行递归注入，直到所有参数都注入到该类中
      *
-     * @param $abstract
-     * @param array $parameters 注入对象实例单参数
+     * @param string $abstract
+     * @param array $parameters
      *
      * @return mixed
      * @throws BindingResolutionException
+     * @throws ReflectionException
      */
-    protected function resolve($abstract, array $parameters = []): mixed
+    protected function resolve(string $abstract, array $parameters = []): mixed
     {
-        // 根据注入的 abstract 获取对应的闭包函数，不存在就返回当前的 abstract(这一步意义是处理该类对应的依赖)
+        // 获取绑定对容器对象
         $concrete = $this->getConcrete($abstract);
 
         if (isset($this->instances[$abstract]) && empty($parameters)) {
             return $this->instances[$abstract];
         }
 
-        // 保存当前实例传入的参数
+        // 保存获取对象时传入对参数
         $this->with = $parameters;
 
+        // 生成容器对象对具体实例
         $object = $this->build($concrete);
 
         if ($this->isShared($abstract)) {
             $this->instances[$abstract] = $object;
         }
+
         // 清空当前传入的参数
-        array_pop($this->with);
+        $this->with = [];
+
+        $this->resolved[$abstract] = true;
 
         return $object;
     }
@@ -158,27 +225,43 @@ class Container implements StdContainerInterface
                 $this->bindings[$abstract]['shared'] === true);
     }
 
-    public function build($concrete)
+
+    /**
+     * 实例化注入类型的具体实例
+     *
+     * @param Closure|string $concrete
+     *
+     * @return mixed
+     * @throws BindingResolutionException
+     * @throws ReflectionException
+     */
+    public function build(Closure|string $concrete): mixed
     {
+        // 如果是闭包直接执行闭包
         if ($concrete instanceof Closure) {
             return $concrete($this, $this->with);
         }
+
         try {
+            // 获取容器对象的反射类
             $reflector = new ReflectionClass($concrete);
         } catch (ReflectionException $e) {
             throw new BindingResolutionException("Target class [$concrete] does not exist.", 0, $e);
         }
+
         // 通过反射检测注入的类是否可以被实例化
         if (! $reflector->isInstantiable()) {
             throw new BindingResolutionException("Target [$concrete] is not instantiable.");
         }
 
         // 通过反射获取当前注入的类是否存在构造函数
-        // 如果不存在直接实例化类，存在就将参数注入到该类中
         $constructor = $reflector->getConstructor();
+
+        // 如果存不存在构造函数就直接返回
         if (is_null($constructor)) {
             $object = new $concrete();
         } else {
+            // 存在构造函数，检测构造函授是否包含参数
             $instances = $this->resolveDependencies($constructor->getParameters());
             $object = $reflector->newInstanceArgs($instances);
         }
@@ -191,6 +274,7 @@ class Container implements StdContainerInterface
      *
      * @return array
      * @throws BindingResolutionException
+     * @throws ReflectionException
      */
     protected function resolveDependencies(array $dependencies): array
     {
@@ -206,10 +290,11 @@ class Container implements StdContainerInterface
                 continue;
             }
 
-            // 如果传入的参数与构造函数中的参数不匹配
+            // 如果构造函数的参数有类型提示，并且不是内置类型，则递归解析当前的对象类型
+            // 如果构造函数没有类型或者是内置类型，则解析是否有默认参数，如果没有默认参数直接抛出异常
             $results[]  = is_null(Util::getParameterClassName($dependency))
                 ? $this->resolvePrimitive($dependency)
-                : $this->resolveClass($dependency);     // 若果构造函数参数是类，并且没有在参数中定义，就解析注入类中的依赖
+                : $this->make(Util::getParameterClassName($dependency));
         }
 
         return $results;
@@ -232,47 +317,14 @@ class Container implements StdContainerInterface
     }
 
     /**
-     * 解析注入类中的依赖
-     *
-     * @param ReflectionParameter $parameter
-     *
-     * @return void
-     *
-     * @throws BindingResolutionException
-     */
-    protected function resolveClass(ReflectionParameter $parameter)
-    {
-        try {
-            return $parameter->isVariadic()
-                ? $this->resolveVariadicClass($parameter)
-                : $this->make(Util::getParameterClassName($parameter));
-        } catch (BindingResolutionException $e) {
-            if ($parameter->isDefaultValueAvailable()) {
-                array_pop($this->with);
-
-                return $parameter->getDefaultValue();
-            }
-
-            if ($parameter->isVariadic()) {
-                array_pop($this->with);
-
-                return [];
-            }
-
-            throw $e;
-        }
-    }
-
-    /**
      * 根据绑定的key，获取对应的绑定类
      *
      * @param $abstract
      *
      * @return mixed
      */
-    protected function getConcrete($abstract)
+    protected function getConcrete($abstract): mixed
     {
-        // 获取注入的类,如果没有发现注入对类抛出异常
         if (isset($this->bindings[$abstract])) {
             return $this->bindings[$abstract]['concrete'];
         }
