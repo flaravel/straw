@@ -29,7 +29,7 @@ class Container
      * @throws ReflectionException
      * @throws Exception
      */
-    public function resolve(mixed $abstract): mixed
+    public function resolve(string $abstract): mixed
     {
         // 获取容器中的对象，如果不存在就返回当前注入key
         $concrete = $this->getConcrete($abstract);
@@ -41,13 +41,12 @@ class Container
     /**
      * 生成对象
      *
-     * @param $concrete
+     * @param Closure|string $concrete
      *
      * @return mixed
      * @throws ReflectionException
-     * @throws Exception
      */
-    public function build($concrete): mixed
+    public function build(Closure|string $concrete): mixed
     {
         // 这里不用 new 关键字来实例化对象，反射可以处理类的一系列操作，可以自行查看反射的官方文档
         // 可以通过反射知道注入对象是否有构造函数，并且可以拿到构造函数中的参数
@@ -124,10 +123,10 @@ class Container
     /**
      * 向购物袋中放对象
      *
-     * @param mixed $abstract 放入的名称key
-     * @param string|null $concrete 具体的对象
+     * @param string $abstract 放入的名称key
+     * @param Closure|string|null $concrete 具体的对象
      */
-    public function bind(mixed $abstract, string $concrete = null)
+    public function bind(string $abstract, Closure|string $concrete = null)
     {
         // 往袋子里面放
         $this->bindings[$abstract] = $concrete;

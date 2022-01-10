@@ -21,7 +21,7 @@ interface StdContainerInterface extends ContainerInterface
 
 
     /**
-     * 向容器注册绑定
+     * 向容器注册绑定(单例)
      *
      * @param string $abstract 绑定的容器的key
      * @param Closure|string|null $concrete 向容器绑定的对象

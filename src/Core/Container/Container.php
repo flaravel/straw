@@ -62,6 +62,18 @@ class Container implements StdContainerInterface
     }
 
     /**
+     * 设置当前容器服务
+     *
+     * @param StdContainerInterface|null $container
+     *
+     * @return StdContainerInterface|null
+     */
+    protected static function setInstance(StdContainerInterface $container = null): ?StdContainerInterface
+    {
+        return static::$instance = $container;
+    }
+
+    /**
      * {@inheritdoc}
      *
      * @param string $id
@@ -126,6 +138,21 @@ class Container implements StdContainerInterface
 
 
     /**
+     * 绑定已经实例化的对象
+     *
+     * @param string $abstract
+     * @param mixed $instance
+     *
+     * @return mixed
+     */
+    public function instance(string $abstract, mixed $instance): mixed
+    {
+        $this->instances[$abstract] = $instance;
+
+        return $instance;
+    }
+
+    /**
      * 向容器注册绑定对象
      *
      * @param string $abstract
@@ -145,7 +172,7 @@ class Container implements StdContainerInterface
         }
 
         // 如果注入的对象不是闭包，则将其转为闭包函数
-        if (!$abstract instanceof Closure) {
+        if (!$concrete instanceof Closure) {
             if (! is_string($concrete)) {
                 $errorMsg = "self::class . '::bind():Argument #2 ($concrete) must be of type Closure|string|null";
                 throw new TypeError($errorMsg);
@@ -200,6 +227,7 @@ class Container implements StdContainerInterface
         // 生成容器对象对具体实例
         $object = $this->build($concrete);
 
+        // 如果是单例注入则注入到单例数组中
         if ($this->isShared($abstract)) {
             $this->instances[$abstract] = $object;
         }
