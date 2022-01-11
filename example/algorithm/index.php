@@ -6,6 +6,7 @@ function hr($fu)
     echo PHP_EOL;
 }
 
+// 数列
 // 99乘法表
 function multiplicationTable()
 {

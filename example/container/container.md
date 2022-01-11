@@ -105,6 +105,4 @@ var_dump($meat->name());        // 输出我是肉类
 var_dump($flavoring->name());    // 输出我是调味料
 ```
 
-### 总结：
-
 
