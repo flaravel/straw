@@ -42,7 +42,7 @@ class ContainerTest extends TestCase
         $this->assertInstanceOf(FakeRedisConnection::class, $this->container->make(FakeRedisConnection::class));
     }
 
-    public function testContainerClassBindConcreteCallback()
+    public function testContainerClassBindInstance()
     {
         $this->container->instance(FakeDbConnection::class, new FakeRedisConnection());
         $this->assertInstanceOf(FakeRedisConnection::class, $this->container->make(FakeDbConnection::class));
