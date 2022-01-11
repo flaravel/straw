@@ -222,7 +222,7 @@ class Container implements StdContainerInterface
         }
 
         // 保存获取对象时传入对参数
-        $this->with = $parameters;
+        $this->with[] = $parameters;
 
         // 生成容器对象对具体实例
         $object = $this->build($concrete);
@@ -233,7 +233,7 @@ class Container implements StdContainerInterface
         }
 
         // 清空当前传入的参数
-        $this->with = [];
+        array_pop($this->with);
 
         $this->resolved[$abstract] = true;
 

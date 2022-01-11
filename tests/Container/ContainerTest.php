@@ -47,4 +47,13 @@ class ContainerTest extends TestCase
         $this->container->instance(FakeDbConnection::class, new FakeRedisConnection());
         $this->assertInstanceOf(FakeRedisConnection::class, $this->container->make(FakeDbConnection::class));
     }
+
+    public function testContainerClassBindParams()
+    {
+        $this->container->bind(FakeDbConnection::class);
+
+        $this->container->make(FakeDbConnection::class);
+
+        dd($this->container);
+    }
 }
