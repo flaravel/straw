@@ -6,4 +6,4 @@
    - [什么是依赖注入](https://github.com/flaravel/straw/blob/master/example/container/table.md)
    - [从现实生活中理解什么是容器](https://github.com/flaravel/straw/blob/master/example/container/container.md)
    - [在容器中实现对象的依赖注入](https://github.com/flaravel/straw/blob/master/example/container/container2.md)
-   - [在容器中实现对参数的依赖注入](https://github.com/flaravel/straw/blob/master/example/container/container3.md)
+   - [在容器中实现对参数的注入](https://github.com/flaravel/straw/blob/master/example/container/container3.md)
