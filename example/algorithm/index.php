@@ -37,7 +37,7 @@ $str = 'laravel';
 echo "反转字符串[$str]->" . reversalStr($str) . PHP_EOL;
 hr('reversalStr');
 
-// 反转一唯数组中的元素
+// 反转一维数组中的元素
 function reversalArr(&$arr)
 {
     // 主要是将左右两边的元素相互调换

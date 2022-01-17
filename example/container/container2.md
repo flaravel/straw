@@ -1,33 +1,28 @@
 ### 在容器中实现对象的依赖
 
-```text
-小明购物回家后，做一顿晚饭肯定不只一道菜，想做最喜欢吃的【青椒炒肉】，【西红柿炒鸡蛋】
-```
-在代码层面，按照上面想要吃的菜,我们可以加一个菜谱类，再将肉，蔬菜，调味料等类注入到菜谱中，这样只需要往容器中加入菜谱类就可以了，这样直接操作菜谱制作对应的菜品即可
-
-在结合laravel项目实际应用中的例子，我想大家经常会在控制器调用对应的服务等，如下
+在实际开发中，我想大家经常会看到如下代码:
 
 ```php
 
-class UserService {}
+class UserXXX {}
 
-class UserController 
+class UserService
 {
-    public $service;
+    protected $user;
     
     // 如果直接实例化该类，肯定好要传对应的参数，不传然肯定报错
-    public function __construct(UserService $service) {
-        $this->service = $service;
+    public function __construct(UserXXX $user) {
+        $this->user = $user;
     }
     
     // do something
 }
-
-app(UserController::class); // 不报错，why？
+new UserServuce(new UserXXX()); // 正常实例化
+app(UserService::class); // 不报错，why？ 这里面就实现类依赖注入
 ```
-接下来用代码实现以上问题,主要知识点
-1. [反射 ReflectionClass](https://www.php.net/manual/zh/book.reflection.php)
-2. [递归](https://www.php.cn/jishu/php/415856.html)
+
+接下来拿上文举例 ，我们将小明购买的菜列一个菜谱，有青椒炒肉，西红柿炒鸡蛋等，而做这些菜的前提必须有所说的几样材料，将肉类，蔬菜类，调味料等类注入到菜谱中
+，最后只需要在菜谱加制作的放即可
 
 代码实现如下：
 ```php
