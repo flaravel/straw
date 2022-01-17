@@ -1,6 +1,6 @@
 {
     "name": "straw/straw",
-    "description": "Start Learning PHP",
+    "description": "Start Learning Laravel",
     "autoload": {
         "psr-4": {
             "Straw\\": "src/",

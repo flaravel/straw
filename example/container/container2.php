@@ -45,7 +45,7 @@ class Container
      * @param mixed $abstract 放入的名称
      * @param string|null $concrete 具体的东西
      */
-    public function bind(mixed $abstract, string $concrete = null)
+    public function bind(string $abstract, string $concrete = null)
     {
         // 往袋子里面放
         $this->bindings[$abstract] = $concrete;

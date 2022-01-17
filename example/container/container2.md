@@ -218,10 +218,10 @@ class Container
     /**
      * 向购物袋中放对象
      *
-     * @param mixed $abstract 放入的名称key
+     * @param string $abstract 放入的名称key
      * @param string|null $concrete 具体的对象
      */
-    public function bind(mixed $abstract, string $concrete = null)
+    public function bind(string $abstract, string $concrete = null)
     {
         // 往袋子里面放
         $this->bindings[$abstract] = $concrete;
