@@ -1,6 +1,4 @@
-### Start Learning Laravel
-
-准备学习一下laravel底层框架的实现，该文档记录学习的过程
+学习一下laravel底层框架的实现，该文档记录学习的过程
 
 1. [容器](https://github.com/flaravel/straw)
    - [什么是依赖注入](https://github.com/flaravel/straw/blob/master/example/container/table.md)
