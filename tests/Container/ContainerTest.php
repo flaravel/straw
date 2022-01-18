@@ -52,8 +52,6 @@ class ContainerTest extends TestCase
     {
         $this->container->bind(FakeDbConnection::class);
 
-        $this->container->make(FakeDbConnection::class);
-
-        dd($this->container);
+        $this->assertInstanceOf(FakeDbConnection::class, $this->container->make(FakeDbConnection::class));
     }
 }
