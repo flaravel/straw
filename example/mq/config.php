@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'host' => '119.29.159.240',
+    'host' => '',
     'port' => '5672',
     'vhost' => 'test',
     'login' => 'admin',
