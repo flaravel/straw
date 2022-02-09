@@ -7,7 +7,7 @@
             "Tests\\": "tests/"
         },
         "files": [
-            "src/helpers.php"
+            "src/Core/Foundation/helpers.php"
         ]
     },
     "authors": [
@@ -18,10 +18,14 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=8.1",
+        "php": "^7.4 || 8.1",
         "ext-mysqli": "*",
         "psr/container": "2.0.x-dev",
-        "symfony/var-dumper": "6.1.x-dev"
+        "symfony/var-dumper": "6.1.x-dev",
+        "psr/http-message": "1.0.x-dev",
+        "psr/http-factory": "1.0.x-dev",
+        "ralouphie/getallheaders": "dev-develop",
+        "ext-amqp": "*"
     },
     "require-dev":{
         "squizlabs/php_codesniffer": "*",

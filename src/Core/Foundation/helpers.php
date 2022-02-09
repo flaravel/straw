@@ -1,18 +1,19 @@
 <?php
 
-use Straw\Application;
 use Straw\Core\Container\Container;
+use Straw\Core\Container\BindingResolutionException;
 
 if (! function_exists('app')) {
     /**
      * Get the available container instance.
      *
      * @param string|null $abstract
-     * @param  array  $parameters
+     * @param array $parameters
      *
-     * @return mixed|Application
+     * @return mixed
+     * @throws ReflectionException|BindingResolutionException
      */
-    function app(string $abstract = null, array $parameters = [])
+    function app(string $abstract = null, array $parameters = []): mixed
     {
         if (empty($abstract)) {
             return Container::getInstance();

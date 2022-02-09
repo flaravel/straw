@@ -4,7 +4,7 @@ namespace Tests\Container;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Fake\FakeDbConnection;
-use Straw\Core\Container\Container;
+use Straw\Core\Foundation\Core\Container\Container;
 use Tests\Fake\FakeRedisConnection;
 
 class ContainerTest extends TestCase

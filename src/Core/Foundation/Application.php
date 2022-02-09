@@ -1,6 +1,6 @@
 <?php
 
-namespace Straw;
+namespace Straw\Core\Foundation;
 
 use Straw\Core\Container\Container;
 
@@ -31,6 +31,7 @@ class Application extends Container
 
         return $this;
     }
+
 
     protected function registerBaseBindings()
     {

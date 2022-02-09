@@ -64,7 +64,7 @@ class Connection
     }
 }
 
-$connect = new Connection('127.0.0.1', 'root', 'password', 'test');
+$connect = new MqConnection('127.0.0.1', 'root', 'password', 'test');
 
 $serialize = serialize($connect);
 echo 'serialize data -> '. $serialize.PHP_EOL;
@@ -142,7 +142,7 @@ class Connection2
     }
 }
 
-$connect = new Connection('127.0.0.1', 'root', 'password', 'test');
+$connect = new MqConnection('127.0.0.1', 'root', 'password', 'test');
 
 $serialize = serialize($connect);
 echo 'serialize data -> '. $serialize.PHP_EOL;

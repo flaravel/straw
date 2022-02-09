@@ -34,7 +34,7 @@ class Container implements StdContainerInterface
 
 
     /**
-     * 解析后对对象
+     * 解析后的对象
      *
      * @var bool[]
      */
@@ -79,7 +79,6 @@ class Container implements StdContainerInterface
      * @param string $id
      *
      * @return mixed
-     * @throws BindingResolutionException
      * @throws EntryNotFoundException
      * @throws ReflectionException
      */
@@ -115,7 +114,8 @@ class Container implements StdContainerInterface
      * @param array $parameters
      *
      * @return mixed
-     * @throws BindingResolutionException|ReflectionException
+     * @throws BindingResolutionException
+     * @throws ReflectionException
      */
     public function make($abstract, array $parameters = []): mixed
     {
