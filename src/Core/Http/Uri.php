@@ -2,8 +2,24 @@
 
 namespace Straw\Core\Http;
 
+use JetBrains\PhpStorm\Pure;
+use InvalidArgumentException;
 use Psr\Http\Message\UriInterface;
 
+/**
+ * URI 数据对象。
+ *
+ * 此接口按照 RFC 3986 来构建 HTTP URI，提供了一些通用的操作，你可以自由的对此接口
+ * 进行扩展。你可以使用此 URI 接口来做 HTTP 相关的操作，也可以使用此接口做任何 URI
+ * 相关的操作。
+ *
+ * 此接口的实例化对象被视为无法修改的，所有能修改状态的方法，都 **必须** 有一套机制，在内部保
+ * 持好原有的内容，然后把修改状态后的，新的实例返回。
+ *
+ * 通常，HOST 信息也将出现在请求消息中。对于服务器端的请求，通常可以在服务器参数中发现此信息。
+ *
+ * @see [URI 通用标准规范](http://tools.ietf.org/html/rfc3986)
+ */
 class Uri implements UriInterface
 {
 
@@ -49,50 +65,47 @@ class Uri implements UriInterface
      */
     public function __construct($uri)
     {
-       $this->init($uri);
+        if ($uri) {
+            // 解析
+            $parts    = parse_url($uri);
+            if (!$parts) {
+                throw new InvalidArgumentException(sprintf('Unable to parse URI: "%s"', $uri));
+            }
+            $scheme   = isset($parts['scheme']) ? strtolower($parts['scheme']) : '';
+            $host     = $parts['host'] ?? '';
+            $port     = $parts['port'] ?? '';
+            $user     = $parts['user'] ?? '';
+            $pass     = $parts['pass'] ?? '';
+            $path     = $parts['path'] ?? '';
+            $query    = $parts['query'] ?? '';
+            $fragment = $parts['fragment'] ?? '';
+
+            // 赋值
+            $this->scheme   = $scheme;
+            $this->userInfo = $user . ($pass ? ":{$pass}" : '');
+            $this->host     = $host;
+            $this->port     = $port;
+            $this->path     = $path;
+            $this->query    = $query;
+            $this->fragment = $fragment;
+        }
     }
 
     /**
-     * 初始化
+     * 返回 URI 认证信息。
      *
-     * @param string $url
-     */
-    protected function init(string $uri)
-    {
-        // 解析
-        $parts    = parse_url($uri);
-        $scheme   = $parts['scheme'] ?? '';
-        $host     = $parts['host'] ?? '';
-        $port     = $parts['port'] ?? '';
-        $user     = $parts['user'] ?? '';
-        $pass     = $parts['pass'] ?? '';
-        $path     = $parts['path'] ?? '';
-        $query    = $parts['query'] ?? '';
-        $fragment = $parts['fragment'] ?? '';
-
-        // 赋值
-        $this->scheme   = $scheme;
-        $this->userInfo = $user . ($pass ? ":{$pass}" : '');
-        $this->host     = $host;
-        $this->port     = $port;
-        $this->path     = $path;
-        $this->query    = $query;
-        $this->fragment = $fragment;
-    }
-
-    /**
-     * Retrieve the scheme component of the URI.
+     * 如果没有 URI 认证信息的话，**必须** 返回一个空字符串。
      *
-     * If no scheme is present, this method MUST return an empty string.
+     * URI 的认证信息语法是：
      *
-     * The value returned MUST be normalized to lowercase, per RFC 3986
-     * Section 3.1.
+     * <pre>
+     * [user-info@]host[:port]
+     * </pre>
      *
-     * The trailing ":" character is not part of the scheme and MUST NOT be
-     * added.
+     * 如果端口部分没有设置，或者端口不是标准端口，**不应该** 包含在返回值内。
      *
-     * @see https://tools.ietf.org/html/rfc3986#section-3.1
-     * @return string The URI scheme.
+     * @see https://tools.ietf.org/html/rfc3986#section-3.2
+     * @return string URI 认证信息，格式为：「[user-info@]host[:port]」。
      */
     public function getScheme(): string
     {
@@ -100,329 +113,340 @@ class Uri implements UriInterface
     }
 
     /**
-     * Retrieve the authority component of the URI.
+     * 返回 URI 认证信息。
      *
-     * If no authority information is present, this method MUST return an empty
-     * string.
+     * 如果没有 URI 认证信息的话，**必须** 返回一个空字符串。
      *
-     * The authority syntax of the URI is:
+     * URI 的认证信息语法是：
      *
      * <pre>
      * [user-info@]host[:port]
      * </pre>
      *
-     * If the port component is not set or is the standard port for the current
-     * scheme, it SHOULD NOT be included.
+     * 如果端口部分没有设置，或者端口不是标准端口，**不应该** 包含在返回值内。
      *
      * @see https://tools.ietf.org/html/rfc3986#section-3.2
-     * @return string The URI authority, in "[user-info@]host[:port]" format.
+     * @return string URI 认证信息，格式为：「[user-info@]host[:port]」。
      */
-    public function getAuthority()
+    public function getAuthority(): string
     {
+        if ($this->host == '') {
+            return '';
+        }
 
+        $authority = $this->host;
+        if ($this->userInfo !== '') {
+            $authority = $this->userInfo . '@' . $authority;
+        }
+
+        if (null !== $this->port) {
+            $authority .= ':' . $this->port;
+        }
+
+        return $authority;
     }
 
     /**
-     * Retrieve the user information component of the URI.
+     * 从 URI 中获取用户信息。
      *
-     * If no user information is present, this method MUST return an empty
-     * string.
+     * 如果不存在用户信息，此方法 **必须** 返回一个空字符串。
      *
-     * If a user is present in the URI, this will return that value;
-     * additionally, if the password is also present, it will be appended to the
-     * user value, with a colon (":") separating the values.
+     * 如果 URI 中存在用户，则返回该值；此外，如果密码也存在，它将附加到用户值，用冒号（「:」）分隔。
      *
-     * The trailing "@" character is not part of the user information and MUST
-     * NOT be added.
+     * 用户信息后面跟着的 "@" 字符，不是用户信息里面的一部分，**不得** 在返回值里出现。
      *
-     * @return string The URI user information, in "username[:password]" format.
+     * @return string URI 的用户信息，格式："username[:password]"
      */
-    public function getUserInfo()
+    public function getUserInfo(): string
     {
-
+        return $this->userInfo;
     }
 
     /**
-     * Retrieve the host component of the URI.
+     * 从 URI 中获取 HOST 信息。
      *
-     * If no host is present, this method MUST return an empty string.
+     * 如果 URI 中没有此值，**必须** 返回空字符串。
      *
-     * The value returned MUST be normalized to lowercase, per RFC 3986
-     * Section 3.2.2.
+     * 根据 RFC 3986 规范 3.2.2 章节，返回的数据 **必须** 是小写字母。
      *
      * @see http://tools.ietf.org/html/rfc3986#section-3.2.2
-     * @return string The URI host.
+     * @return string URI 中的 HOST 信息。
      */
-    public function getHost()
+    public function getHost(): string
     {
-
+        return $this->host;
     }
 
     /**
-     * Retrieve the port component of the URI.
+     * 从 URI 中获取端口信息。
      *
-     * If a port is present, and it is non-standard for the current scheme,
-     * this method MUST return it as an integer. If the port is the standard port
-     * used with the current scheme, this method SHOULD return null.
+     * 如果端口信息是与当前 Scheme 的标准端口不匹配的话，就使用整数值的格式返回，如果是一
+     * 样的话，**应该** 返回 `null` 值。
      *
-     * If no port is present, and no scheme is present, this method MUST return
-     * a null value.
+     * 如果不存在端口和 Scheme 信息，**必须** 返回 `null` 值。
      *
-     * If no port is present, but a scheme is present, this method MAY return
-     * the standard port for that scheme, but SHOULD return null.
+     * 如果不存在端口数据，但是存在 Scheme 的话，**可能** 返回 Scheme 对应的
+     * 标准端口，但是 **应该** 返回 `null`。
      *
-     * @return null|int The URI port.
+     * @return null|int URI 中的端口信息。
      */
-    public function getPort()
+    public function getPort(): ?int
     {
-
+        return $this->port;
     }
 
     /**
-     * Retrieve the path component of the URI.
+     * 从 URI 中获取路径信息。
      *
-     * The path can either be empty or absolute (starting with a slash) or
-     * rootless (not starting with a slash). Implementations MUST support all
-     * three syntaxes.
+     * 路径可以是空的，或者是绝对的（以斜线「/」开头），或者相对路径（不以斜线开头）。
+     * 实现 **必须** 支持所有三种语法。
      *
-     * Normally, the empty path "" and absolute path "/" are considered equal as
-     * defined in RFC 7230 Section 2.7.3. But this method MUST NOT automatically
-     * do this normalization because in contexts with a trimmed base path, e.g.
-     * the front controller, this difference becomes significant. It's the task
-     * of the user to handle both "" and "/".
+     * 根据 RFC 7230 第 2.7.3 节，通常空路径「」和绝对路径「/」被认为是相同的。
+     * 但是这个方法 **不得** 自动进行这种规范化，因为在具有修剪的基本路径的上下文中，
+     * 例如前端控制器中，这种差异将变得显著。用户的任务就是可以将「」和「/」都处理好。
      *
-     * The value returned MUST be percent-encoded, but MUST NOT double-encode
-     * any characters. To determine what characters to encode, please refer to
-     * RFC 3986, Sections 2 and 3.3.
+     * 返回的值 **必须** 是百分号编码，但 **不得** 对任何字符进行双重编码。
+     * 要确定要编码的字符，请参阅 RFC 3986 第 2 节和第 3.3 节。
      *
-     * As an example, if the value should include a slash ("/") not intended as
-     * delimiter between path segments, that value MUST be passed in encoded
-     * form (e.g., "%2F") to the instance.
+     * 例如，如果值包含斜线（「/」）而不是路径段之间的分隔符，则该值必须以编码形式（例如「%2F」）
+     * 传递给实例。
      *
      * @see https://tools.ietf.org/html/rfc3986#section-2
      * @see https://tools.ietf.org/html/rfc3986#section-3.3
-     * @return string The URI path.
+     * @return string URI 路径信息。
      */
-    public function getPath()
+    public function getPath(): string
     {
-
+        return $this->path;
     }
 
     /**
-     * Retrieve the query string of the URI.
+     * 获取 URI 中的查询字符串。
      *
-     * If no query string is present, this method MUST return an empty string.
+     * 如果不存在查询字符串，则此方法必须返回空字符串。
      *
-     * The leading "?" character is not part of the query and MUST NOT be
-     * added.
+     * 前导的「?」字符不是查询字符串的一部分，**不得** 添加在返回值中。
      *
-     * The value returned MUST be percent-encoded, but MUST NOT double-encode
-     * any characters. To determine what characters to encode, please refer to
-     * RFC 3986, Sections 2 and 3.4.
+     * 返回的值 **必须** 是百分号编码，但 **不得** 对任何字符进行双重编码。
+     * 要确定要编码的字符，请参阅 RFC 3986 第 2 节和第 3.4 节。
      *
-     * As an example, if a value in a key/value pair of the query string should
-     * include an ampersand ("&") not intended as a delimiter between values,
-     * that value MUST be passed in encoded form (e.g., "%26") to the instance.
+     * 例如，如果查询字符串的键值对中的值包含不做为值之间分隔符的（「&」），则该值必须
+     * 以编码形式传递（例如「%26」）到实例。
      *
      * @see https://tools.ietf.org/html/rfc3986#section-2
      * @see https://tools.ietf.org/html/rfc3986#section-3.4
-     * @return string The URI query string.
+     * @return string URI 中的查询字符串
      */
-    public function getQuery()
+    public function getQuery(): string
     {
-
+        return $this->query;
     }
 
     /**
-     * Retrieve the fragment component of the URI.
+     * 获取 URI 中的片段（Fragment）信息。
      *
-     * If no fragment is present, this method MUST return an empty string.
+     * 如果没有片段信息，此方法 **必须** 返回空字符串。
      *
-     * The leading "#" character is not part of the fragment and MUST NOT be
-     * added.
+     * 前导的「#」字符不是片段的一部分，**不得** 添加在返回值中。
      *
-     * The value returned MUST be percent-encoded, but MUST NOT double-encode
-     * any characters. To determine what characters to encode, please refer to
-     * RFC 3986, Sections 2 and 3.5.
+     * 返回的值 **必须** 是百分号编码，但 **不得** 对任何字符进行双重编码。
+     * 要确定要编码的字符，请参阅 RFC 3986 第 2 节和第 3.5 节。
      *
      * @see https://tools.ietf.org/html/rfc3986#section-2
      * @see https://tools.ietf.org/html/rfc3986#section-3.5
-     * @return string The URI fragment.
+     * @return string URI 中的片段信息。
      */
-    public function getFragment()
+    public function getFragment(): string
     {
-
+        return $this->fragment;
     }
 
     /**
-     * Return an instance with the specified scheme.
+     * 返回具有指定 Scheme 的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified scheme.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含指定 Scheme 的实例。
      *
-     * Implementations MUST support the schemes "http" and "https" case
-     * insensitively, and MAY accommodate other schemes if required.
+     * 实现 **必须** 支持大小写不敏感的「http」和「https」的 Scheme，并且在
+     * 需要的时候 **可能** 支持其他的 Scheme。
      *
-     * An empty scheme is equivalent to removing the scheme.
+     * 空的 Scheme 相当于删除 Scheme。
      *
-     * @param string $scheme The scheme to use with the new instance.
-     * @return static A new instance with the specified scheme.
-     * @throws \InvalidArgumentException for invalid or unsupported schemes.
+     * @param string $scheme 给新实例使用的 Scheme。
+     * @return self 具有指定 Scheme 的新实例。
+     * @throws InvalidArgumentException 使用无效的 Scheme 时抛出。
+     * @throws InvalidArgumentException 使用不支持的 Scheme 时抛出。
      */
-    public function withScheme($scheme)
+    public function withScheme($scheme): Uri
     {
-
+        $new = clone $this;
+        $new->scheme = strtolower($scheme);
+        return $new;
     }
 
     /**
-     * Return an instance with the specified user information.
+     * 返回具有指定用户信息的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified user information.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含指定用户信息的实例。
      *
-     * Password is optional, but the user information MUST include the
-     * user; an empty string for the user is equivalent to removing user
-     * information.
+     * 密码是可选的，但用户信息 **必须** 包括用户；用户信息的空字符串相当于删除用户信息。
      *
-     * @param string $user The user name to use for authority.
-     * @param null|string $password The password associated with $user.
-     * @return static A new instance with the specified user information.
+     * @param string $user 用于认证的用户名。
+     * @param null|string $password 密码。
+     * @return self 具有指定用户信息的新实例。
      */
-    public function withUserInfo($user, $password = null)
+    public function withUserInfo($user, $password = null): self
     {
+        $info = $user;
+        if (null !== $password && '' !== $password) {
+            $info .= ':' . $password;
+        }
 
+        if ($this->userInfo === $info) {
+            return $this;
+        }
+
+        $new = clone $this;
+        $new->userInfo = $info;
+
+        return $new;
     }
 
     /**
-     * Return an instance with the specified host.
+     * 返回具有指定 HOST 信息的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified host.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含指定 HOST 信息的实例。
      *
-     * An empty host value is equivalent to removing the host.
+     * 空的 HOST 信息等同于删除 HOST 信息。
      *
-     * @param string $host The hostname to use with the new instance.
-     * @return static A new instance with the specified host.
-     * @throws \InvalidArgumentException for invalid hostnames.
+     * @param string $host 用于新实例的 HOST 信息。
+     *
+     * @return self 具有指定 HOST 信息的实例。
+     * @throws InvalidArgumentException 使用无效的 HOST 信息时抛出。
      */
-    public function withHost($host)
+    public function withHost($host): Uri
     {
+        $new = clone $this;
+        $new->host = strtolower($host);
 
+        return $new;
     }
 
     /**
-     * Return an instance with the specified port.
+     * 返回具有指定端口的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified port.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含指定端口的实例。
      *
-     * Implementations MUST raise an exception for ports outside the
-     * established TCP and UDP port ranges.
+     * 实现 **必须** 为已建立的 TCP 和 UDP 端口范围之外的端口引发异常。
      *
-     * A null value provided for the port is equivalent to removing the port
-     * information.
+     * 为端口提供的空值等同于删除端口信息。
      *
-     * @param null|int $port The port to use with the new instance; a null value
-     *     removes the port information.
-     * @return static A new instance with the specified port.
-     * @throws \InvalidArgumentException for invalid ports.
+     * @param null|int $port 用于新实例的端口；`null` 值将删除端口信息。
+     *
+     * @return self 具有指定端口的实例。
+     * @throws InvalidArgumentException 使用无效端口时抛出异常。
      */
-    public function withPort($port)
+    public function withPort($port): Uri
     {
+        $new = clone $this;
+        $new->port = $port;
 
+        return $new;
     }
 
     /**
-     * Return an instance with the specified path.
+     * 返回具有指定路径的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified path.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含指定路径的实例。
      *
-     * The path can either be empty or absolute (starting with a slash) or
-     * rootless (not starting with a slash). Implementations MUST support all
-     * three syntaxes.
+     * 路径可以是空的、绝对的（以斜线开头）或者相对路径（不以斜线开头），实现必须支持这三种语法。
      *
-     * If the path is intended to be domain-relative rather than path relative then
-     * it must begin with a slash ("/"). Paths not starting with a slash ("/")
-     * are assumed to be relative to some base path known to the application or
-     * consumer.
+     * 如果 HTTP 路径旨在与 HOST 相对而不是路径相对，，那么它必须以斜线开头。
+     * 假设 HTTP 路径不以斜线开头，对应该程序或开发人员来说，相对于一些已知的路径。
      *
-     * Users can provide both encoded and decoded path characters.
-     * Implementations ensure the correct encoding as outlined in getPath().
+     * 用户可以提供编码和解码的路径字符，要确保实现了 `getPath()` 中描述的正确编码。
      *
-     * @param string $path The path to use with the new instance.
-     * @return static A new instance with the specified path.
-     * @throws \InvalidArgumentException for invalid paths.
+     * @param string $path 用于新实例的路径。
+     *
+     * @return self 具有指定路径的实例。
+     * @throws InvalidArgumentException 使用无效的路径时抛出。
      */
-    public function withPath($path)
+    public function withPath($path): Uri
     {
+        $new = clone $this;
+        $new->path = $path;
 
+        return $new;
     }
 
     /**
-     * Return an instance with the specified query string.
+     * 返回具有指定查询字符串的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified query string.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含查询字符串的实例。
      *
-     * Users can provide both encoded and decoded query characters.
-     * Implementations ensure the correct encoding as outlined in getQuery().
+     * 用户可以提供编码和解码的查询字符串，要确保实现了 `getQuery()` 中描述的正确编码。
      *
-     * An empty query string value is equivalent to removing the query string.
+     * 空查询字符串值等同于删除查询字符串。
      *
-     * @param string $query The query string to use with the new instance.
-     * @return static A new instance with the specified query string.
-     * @throws \InvalidArgumentException for invalid query strings.
+     * @param string $query 用于新实例的查询字符串。
+     *
+     * @return self 具有指定查询字符串的实例。
+     * @throws InvalidArgumentException 使用无效的查询字符串时抛出。
      */
-    public function withQuery($query)
+    public function withQuery($query): Uri
     {
+        $new = clone $this;
+        $new->query = $query;
 
+        return $new;
     }
 
     /**
-     * Return an instance with the specified URI fragment.
+     * 返回具有指定 URI 片段（Fragment）的实例。
      *
-     * This method MUST retain the state of the current instance, and return
-     * an instance that contains the specified URI fragment.
+     * 此方法 **必须** 保留当前实例的状态，并返回包含片段的实例。
      *
-     * Users can provide both encoded and decoded fragment characters.
-     * Implementations ensure the correct encoding as outlined in getFragment().
+     * 用户可以提供编码和解码的片段，要确保实现了 `getFragment()` 中描述的正确编码。
      *
-     * An empty fragment value is equivalent to removing the fragment.
+     * 空片段值等同于删除片段。
      *
-     * @param string $fragment The fragment to use with the new instance.
-     * @return static A new instance with the specified fragment.
+     * @param string $fragment 用于新实例的片段。
+     * @return self 具有指定 URI 片段的实例。
      */
-    public function withFragment($fragment)
+    public function withFragment($fragment): Uri
     {
+        $new = clone $this;
+        $this->fragment = $fragment;
 
+        return $new;
     }
 
     /**
-     * Return the string representation as a URI reference.
+     * 返回字符串表示形式的 URI。
      *
-     * Depending on which components of the URI are present, the resulting
-     * string is either a full URI or relative reference according to RFC 3986,
-     * Section 4.1. The method concatenates the various components of the URI,
-     * using the appropriate delimiters:
+     * 根据 RFC 3986 第 4.1 节，结果字符串是完整的 URI 还是相对引用，取决于 URI 有哪些组件。
+     * 该方法使用适当的分隔符连接 URI 的各个组件：
      *
-     * - If a scheme is present, it MUST be suffixed by ":".
-     * - If an authority is present, it MUST be prefixed by "//".
-     * - The path can be concatenated without delimiters. But there are two
-     *   cases where the path has to be adjusted to make the URI reference
-     *   valid as PHP does not allow to throw an exception in __toString():
-     *     - If the path is rootless and an authority is present, the path MUST
-     *       be prefixed by "/".
-     *     - If the path is starting with more than one "/" and no authority is
-     *       present, the starting slashes MUST be reduced to one.
-     * - If a query is present, it MUST be prefixed by "?".
-     * - If a fragment is present, it MUST be prefixed by "#".
+     * - 如果存在 Scheme 则 **必须** 以「:」为后缀。
+     * - 如果存在认证信息，则必须以「//」作为前缀。
+     * - 路径可以在没有分隔符的情况下连接。但是有两种情况需要调整路径以使 URI 引用有效，因为 PHP
+     *   不允许在 `__toString()` 中引发异常：
+     *     - 如果路径是相对的并且有认证信息，则路径 **必须** 以「/」为前缀。
+     *     - 如果路径以多个「/」开头并且没有认证信息，则起始斜线 **必须** 为一个。
+     * - 如果存在查询字符串，则 **必须** 以「?」作为前缀。
+     * - 如果存在片段（Fragment），则 **必须** 以「#」作为前缀。
      *
      * @see http://tools.ietf.org/html/rfc3986#section-4.1
      * @return string
      */
-    public function __toString()
+    #[Pure] public function __toString()
     {
-
+        $scheme    = $this->getScheme();
+        $authority = $this->getAuthority();
+        $path      = $this->getPath();
+        $query     = $this->getQuery();
+        $query     = $query ? "?{$query}" : '';
+        $fragment  = $this->getFragment();
+        $fragment  = $fragment ? "#{$fragment}" : '';
+        return $scheme . '://' . $authority . $path . $query . $fragment;
     }
 }

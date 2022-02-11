@@ -2,18 +2,35 @@
 
 namespace Straw\Core\Http;
 
+use JetBrains\PhpStorm\Pure;
 use InvalidArgumentException;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\RequestInterface;
-use Straw\Core\Http\Factory\RequestFactory;
 
+/**
+ * 代表客户端向服务器发起请求的 HTTP 消息对象。
+ *
+ * 根据 HTTP 规范，此接口包含以下属性：
+ *
+ * - HTTP 协议版本号
+ * - HTTP 请求方法
+ * - URI
+ * - 报头信息
+ * - 消息内容
+ *
+ * 在构造 HTTP 请求对象的时候，如果没有提供 Host 信息，
+ * 实现类库 **必须** 从给出的 URI 中去提取 Host 信息。
+ *
+ * HTTP 请求是被视为无法修改的，所有能修改状态的方法，都 **必须** 有一套机制，在内部保
+ * 持好原有的内容，然后把修改状态后的新的 HTTP 请求实例返回。
+ */
 class Request extends Message implements RequestInterface
 {
 
     /**
-     * @var string
+     * @var string|null
      */
-    protected string $requestTarget = '/';
+    protected ?string $requestTarget = null;
 
 
     /**
@@ -23,66 +40,77 @@ class Request extends Message implements RequestInterface
 
 
     /**
-     * @var UriInterface
+     * @var UriInterface|string
      */
-    protected UriInterface $uri;
+    protected mixed $uri;
 
 
-    public function __construct(string $method, UriInterface $uri)
+    /**
+     * @param string $method            请求方法
+     * @param string|UriInterface $uri  URI实现类
+     */
+    public function __construct(string $method, UriInterface|string $uri)
     {
+        if (!($uri instanceof UriInterface)) {
+            $uri = new Uri($uri);
+        }
         $this->uri = $uri;
         $this->method = $method;
     }
 
 
     /**
-     * Retrieves the message's request target.
+     * 获取消息的请求目标。
      *
-     * Retrieves the message's request-target either as it will appear (for
-     * clients), as it appeared at request (for servers), or as it was
-     * specified for the instance (see withRequestTarget()).
+     * 获取消息的请求目标的使用场景，可能是在客户端，也可能是在服务器端，也可能是在指定信息的时候
+     * （参阅下方的 `withRequestTarget()`）。
      *
-     * In most cases, this will be the origin-form of the composed URI,
-     * unless a value was provided to the concrete implementation (see
-     * withRequestTarget() below).
+     * 在大部分情况下，此方法会返回组合 URI 的原始形式，除非被指定过（参阅下方的 `withRequestTarget()`）。
      *
-     * If no URI is available, and no request-target has been specifically
-     * provided, this method MUST return the string "/".
+     * 如果没有可用的 URI，并且没有设置过请求目标，此方法 **必须** 返回 「/」。
      *
      * @return string
      */
-    public function getRequestTarget(): string
+    #[Pure] public function getRequestTarget(): string
     {
-        return $this->requestTarget;
+        if ($this->requestTarget !== null) {
+            return $this->requestTarget;
+        }
+        if (($target = $this->uri->getPath()) == '') {
+            $target = '/';
+        }
+        if ($this->uri->getQuery() !== '') {
+            $target .= '?' . $this->uri->getQuery();
+        }
+        return $target;
     }
 
     /**
-     * Return an instance with the specific request-target.
+     * 返回一个指定目标的请求实例。
      *
-     * If the request needs a non-origin-form request-target — e.g., for
-     * specifying an absolute-form, authority-form, or asterisk-form —
-     * this method may be used to create an instance with the specified
-     * request-target, verbatim.
+     * 如果请求需要非原始形式的请求目标——例如指定绝对形式、认证形式或星号形式——则此方法
+     * 可用于创建指定请求目标的实例。
      *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * changed request target.
+     * 此方法在实现的时候，**必须** 保留原有的不可修改的 HTTP 请求实例，然后返回
+     * 一个新的修改过的 HTTP 请求实例。
      *
-     * @link http://tools.ietf.org/html/rfc7230#section-5.3 (for the various
-     *     request-target forms allowed in request messages)
+     * @see [http://tools.ietf.org/html/rfc7230#section-2.7](http://tools.ietf.org/html/rfc7230#section-2.7)
+     * （关于请求目标的各种允许的格式）
+     *
      * @param mixed $requestTarget
-     * @return static
+     * @return self
      */
     public function withRequestTarget($requestTarget): static
     {
-        $this->requestTarget = $requestTarget;
-        return $this;
+        $new = clone $this;
+        $new->requestTarget = $requestTarget;
+        return $new;
     }
 
     /**
-     * Retrieves the HTTP method of the request.
+     * 获取当前请求使用的 HTTP 方法
      *
-     * @return string Returns the request method.
+     * @return string HTTP 方法字符串
      */
     public function getMethod(): string
     {
@@ -90,37 +118,35 @@ class Request extends Message implements RequestInterface
     }
 
     /**
-     * Return an instance with the provided HTTP method.
+     * 返回更改了请求方法的消息实例。
      *
-     * While HTTP method names are typically all uppercase characters, HTTP
-     * method names are case-sensitive and thus implementations SHOULD NOT
-     * modify the given string.
+     * 虽然，在大部分情况下，HTTP 请求方法都是使用大写字母来标示的，但是，实现类库 **不应该**
+     * 修改用户传参的大小格式。
      *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * changed request method.
+     * 此方法在实现的时候，**必须** 保留原有的不可修改的 HTTP 请求实例，然后返回
+     * 一个新的修改过的 HTTP 请求实例。
      *
-     * @param string $method Case-sensitive method.
-     * @return static
-     * @throws InvalidArgumentException for invalid HTTP methods.
+     * @param string $method 大小写敏感的方法名
+     * @return self
+     * @throws InvalidArgumentException 当非法的 HTTP 方法名传入时会抛出异常。
      */
     public function withMethod($method): static
     {
         if (!is_string($method)) {
-            throw new InvalidArgumentException('Parameter exception');
+            throw new InvalidArgumentException('Method must be a string');
         }
-        $this->method = $method;
-        return $this;
+        $new = clone $this;
+        $new->method = $method;
+        return $new;
     }
 
     /**
-     * Retrieves the URI instance.
+     * 获取 URI 实例。
      *
-     * This method MUST return a UriInterface instance.
+     * 此方法 **必须** 返回 `UriInterface` 的 URI 实例。
      *
-     * @link http://tools.ietf.org/html/rfc3986#section-4.3
-     * @return UriInterface Returns a UriInterface instance
-     *     representing the URI of the request.
+     * @see http://tools.ietf.org/html/rfc3986#section-4.3
+     * @return UriInterface 返回与当前请求相关的 `UriInterface` 类型的 URI 实例。
      */
     public function getUri(): UriInterface
     {
@@ -128,38 +154,33 @@ class Request extends Message implements RequestInterface
     }
 
     /**
-     * Returns an instance with the provided URI.
+     * 返回修改了 URI 的消息实例。
      *
-     * This method MUST update the Host header of the returned request by
-     * default if the URI contains a host component. If the URI does not
-     * contain a host component, any pre-existing Host header MUST be carried
-     * over to the returned request.
+     * 当传入的 URI 包含有 HOST 信息时，此方法 **必须** 更新 HOST 信息。如果 URI
+     * 实例没有附带 HOST 信息，任何之前存在的 HOST 信息 **必须** 作为候补，应用
+     * 更改到返回的消息实例里。
      *
-     * You can opt-in to preserving the original state of the Host header by
-     * setting `$preserveHost` to `true`. When `$preserveHost` is set to
-     * `true`, this method interacts with the Host header in the following ways:
+     * 你可以通过传入第二个参数来，来干预方法的处理，当 `$preserveHost` 设置为 `true`
+     * 的时候，会保留原来的 HOST 信息。当 `$preserveHost` 设置为 `true` 时，此方法
+     * 会如下处理 HOST 信息：
      *
-     * - If the Host header is missing or empty, and the new URI contains
-     *   a host component, this method MUST update the Host header in the returned
-     *   request.
-     * - If the Host header is missing or empty, and the new URI does not contain a
-     *   host component, this method MUST NOT update the Host header in the returned
-     *   request.
-     * - If a Host header is present and non-empty, this method MUST NOT update
-     *   the Host header in the returned request.
+     * - 如果 HOST 信息不存在或为空，并且新 URI 包含 HOST 信息，则此方法 **必须** 更新返回请求中的 HOST 信息。
+     * - 如果 HOST 信息不存在或为空，并且新 URI 不包含 HOST 信息，则此方法 **不得** 更新返回请求中的 HOST 信息。
+     * - 如果HOST 信息存在且不为空，则此方法 **不得** 更新返回请求中的 HOST 信息。
      *
-     * This method MUST be implemented in such a way as to retain the
-     * immutability of the message, and MUST return an instance that has the
-     * new UriInterface instance.
+     * 此方法在实现的时候，**必须** 保留原有的不可修改的 HTTP 请求实例，然后返回
+     * 一个新的修改过的 HTTP 请求实例。
      *
-     * @link http://tools.ietf.org/html/rfc3986#section-4.3
-     * @param UriInterface $uri New request URI to use.
-     * @param bool $preserveHost Preserve the original state of the Host header.
-     * @return static
+     * @see http://tools.ietf.org/html/rfc3986#section-4.3
+     * @param UriInterface $uri `UriInterface` 新的 URI 实例
+     * @param bool $preserveHost 是否保留原有的 HOST 头信息
+     * @return self
      */
     public function withUri(UriInterface $uri, $preserveHost = false): static
     {
-        $this->uri = $uri;
-        return $this;
+        $new = clone $this;
+        $new->uri = $uri;
+
+        return $new;
     }
 }

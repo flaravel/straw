@@ -2,7 +2,7 @@
 
 namespace Straw\Core\Http;
 
-use Straw\Core\Http\Factory\ServerRequestFactory;
+use Straw\Core\Http\Factory\Psr17Factory;
 
 class Context
 {
@@ -18,7 +18,7 @@ class Context
     public static function capture(): static
     {
         $ctx = new static();
-        $ctx->request = (new ServerRequestFactory())->createServerRequestFormBase();
+        $ctx->request = (new Psr17Factory())->createServerRequestFromGlobals();
         return $ctx;
     }
 }

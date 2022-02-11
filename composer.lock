@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "46c081bd044d557298bc62cca90368b4",
+    "content-hash": "2933b1789145338c234b0bcbbe2c207e",
     "packages": [
         {
             "name": "psr/container",
@@ -334,12 +334,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/symfony/var-dumper.git",
-                "reference": "f8d30f4440dd702eed1a028caaffaae1ebaeee37"
+                "reference": "559036f3cd1e8098d02ce62756e896128a5fe2dd"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/f8d30f4440dd702eed1a028caaffaae1ebaeee37",
-                "reference": "f8d30f4440dd702eed1a028caaffaae1ebaeee37",
+                "url": "https://api.github.com/repos/symfony/var-dumper/zipball/559036f3cd1e8098d02ce62756e896128a5fe2dd",
+                "reference": "559036f3cd1e8098d02ce62756e896128a5fe2dd",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -420,7 +420,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2021-12-29T10:14:20+00:00"
+            "time": "2022-02-04T19:03:54+00:00"
         }
     ],
     "packages-dev": [
@@ -533,12 +533,12 @@
             "default-branch": true,
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "DeepCopy\\": "src/DeepCopy/"
-                },
                 "files": [
                     "src/DeepCopy/deep_copy.php"
-                ]
+                ],
+                "psr-4": {
+                    "DeepCopy\\": "src/DeepCopy/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -633,16 +633,16 @@
         },
         {
             "name": "phar-io/version",
-            "version": "3.1.0",
+            "version": "3.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phar-io/version.git",
-                "reference": "bae7c545bef187884426f042434e561ab1ddb182"
+                "reference": "15a90844ad40f127afd244c0cad228de2a80052a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phar-io/version/zipball/bae7c545bef187884426f042434e561ab1ddb182",
-                "reference": "bae7c545bef187884426f042434e561ab1ddb182",
+                "url": "https://api.github.com/repos/phar-io/version/zipball/15a90844ad40f127afd244c0cad228de2a80052a",
+                "reference": "15a90844ad40f127afd244c0cad228de2a80052a",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -684,9 +684,9 @@
             "description": "Library for handling version information and constraints",
             "support": {
                 "issues": "https://github.com/phar-io/version/issues",
-                "source": "https://github.com/phar-io/version/tree/3.1.0"
+                "source": "https://github.com/phar-io/version/tree/3.1.1"
             },
-            "time": "2021-02-23T14:00:09+00:00"
+            "time": "2022-02-07T21:56:48+00:00"
         },
         {
             "name": "phpdocumentor/reflection-common",
@@ -1276,12 +1276,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/phpunit.git",
-                "reference": "9b5a2e5cc9d615ab9b1418753c42a2f8c0d5285e"
+                "reference": "ddf8460a4603631215708d228de33a56bab9ef5c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/9b5a2e5cc9d615ab9b1418753c42a2f8c0d5285e",
-                "reference": "9b5a2e5cc9d615ab9b1418753c42a2f8c0d5285e",
+                "url": "https://api.github.com/repos/sebastianbergmann/phpunit/zipball/ddf8460a4603631215708d228de33a56bab9ef5c",
+                "reference": "ddf8460a4603631215708d228de33a56bab9ef5c",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -1371,7 +1371,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-15T09:00:27+00:00"
+            "time": "2022-02-08T06:59:25+00:00"
         },
         {
             "name": "sebastian/code-unit-reverse-lookup",
@@ -1744,12 +1744,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/global-state.git",
-                "reference": "474fb9edb7ab891665d3bfc6317f42a0a150454b"
+                "reference": "de036ec91d55d2a9e0db2ba975b512cdb1c23921"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/global-state/zipball/474fb9edb7ab891665d3bfc6317f42a0a150454b",
-                "reference": "474fb9edb7ab891665d3bfc6317f42a0a150454b",
+                "url": "https://api.github.com/repos/sebastianbergmann/global-state/zipball/de036ec91d55d2a9e0db2ba975b512cdb1c23921",
+                "reference": "de036ec91d55d2a9e0db2ba975b512cdb1c23921",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -1806,7 +1806,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-11-30T07:43:24+00:00"
+            "time": "2022-02-10T06:55:38+00:00"
         },
         {
             "name": "sebastian/object-enumerator",
@@ -2180,12 +2180,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/squizlabs/PHP_CodeSniffer.git",
-                "reference": "7caf9262b096b3d3546b3939993cc8970727bd86"
+                "reference": "b84383fb64029889eb494987aa348b1245b48f50"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/7caf9262b096b3d3546b3939993cc8970727bd86",
-                "reference": "7caf9262b096b3d3546b3939993cc8970727bd86",
+                "url": "https://api.github.com/repos/squizlabs/PHP_CodeSniffer/zipball/b84383fb64029889eb494987aa348b1245b48f50",
+                "reference": "b84383fb64029889eb494987aa348b1245b48f50",
                 "shasum": "",
                 "mirrors": [
                     {
@@ -2234,7 +2234,7 @@
                 "source": "https://github.com/squizlabs/PHP_CodeSniffer",
                 "wiki": "https://github.com/squizlabs/PHP_CodeSniffer/wiki"
             },
-            "time": "2022-01-17T02:05:49+00:00"
+            "time": "2022-02-07T22:26:48+00:00"
         },
         {
             "name": "symfony/polyfill-ctype",
@@ -2458,7 +2458,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.1",
+        "php": "^8.0",
         "ext-mysqli": "*"
     },
     "platform-dev": [],

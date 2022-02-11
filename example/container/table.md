@@ -1,6 +1,6 @@
 ### 什么是依赖注入？
 
-> php之道 http://phptherightway.p2hp.com/#dependency_injection
+> php之道： http://phptherightway.p2hp.com/#dependency_injection
 
 在学laravel容器之前，要先了解什么是**依赖注入**，用一个简单的例子来解释，
 
