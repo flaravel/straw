@@ -92,7 +92,7 @@ private static function createRequestFromFactory(array $query = [], array $reque
 }
 ```
 
-3. 最后Laravel 克隆了 `SymfonyRequest` 类，并且加入自定义一些参数
+3. 最后Laravel 克隆了 `SymfonyRequest` 类，并且加入一些自定义参数
 
 ```php
 public static function  createFromBase(SymfonyRequest $request)
@@ -113,4 +113,4 @@ public static function  createFromBase(SymfonyRequest $request)
 }
 ```
 
-总结: Request类的其实就是对$_GET,$_POST,$_FILES,$_SERVER几个超全局变量的高度封装，然后在这个基础之上做各种操作，方便业务开发
+总结: Request类的其实就是对$_GET,$_POST,$_FILES,$_SERVER几个超全局变量的高度封装
