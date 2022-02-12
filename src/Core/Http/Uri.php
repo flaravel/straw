@@ -395,6 +395,10 @@ class Uri implements UriInterface
      */
     public function withQuery($query): Uri
     {
+        if (!is_string($query)) {
+            throw new InvalidArgumentException('Query 必须是字符串');
+        }
+
         $new = clone $this;
         $new->query = $query;
 

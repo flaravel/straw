@@ -112,8 +112,8 @@ class Container implements StdContainerInterface
      *
      * @param $abstract
      * @param array $parameters
-     *
      * @return mixed
+     *
      * @throws BindingResolutionException
      * @throws ReflectionException
      */

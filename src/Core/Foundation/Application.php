@@ -6,12 +6,17 @@ use Straw\Core\Container\Container;
 
 class Application extends Container
 {
-    protected string $basePath;
+    /**
+     * @var string|null
+     */
+    protected ?string $basePath;
 
-    public function __construct(string $basePath)
+    public function __construct(?string $basePath = null)
     {
-        // 想容器中，注册项目目录路径
-        $this->setBasePath($basePath);
+        if ($basePath) {
+            // 注册项目目录路径
+            $this->setBasePath($basePath);
+        }
         // 注册初始服务
         $this->registerBaseBindings();
     }
