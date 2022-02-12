@@ -49,13 +49,22 @@ class Request extends Message implements RequestInterface
      * @param string $method            请求方法
      * @param string|UriInterface $uri  URI实现类
      */
-    public function __construct(string $method, UriInterface|string $uri)
+    public function __construct(string $method, UriInterface|string $uri, array $headers = [], $body = null, string $version = '1.1')
     {
         if (!($uri instanceof UriInterface)) {
             $uri = new Uri($uri);
         }
         $this->uri = $uri;
         $this->method = $method;
+
+        foreach ($headers as $name => $value) {
+            $this->withHeader($name, $value);
+        }
+
+        if ($body != null || $body != '') {
+            $this->body = Stream::create($body);
+        }
+        $this->withProtocolVersion($version);
     }
 
 

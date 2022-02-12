@@ -4,13 +4,13 @@ namespace Tests\Container;
 
 use PHPUnit\Framework\TestCase;
 use Tests\Fake\FakeDbConnection;
-use Straw\Core\Foundation\Core\Container\Container;
 use Tests\Fake\FakeRedisConnection;
+use Straw\Core\Container\Container;
 
 class ContainerTest extends TestCase
 {
 
-    protected $container;
+    protected ?Container $container;
 
     protected function setUp(): void
     {

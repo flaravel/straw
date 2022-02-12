@@ -89,8 +89,8 @@ class Stream implements StreamInterface
 
         // 如果是字符串就写入临时resource
         if (is_string($body)) {
-            $resource = \fopen('php://temp', 'rw+');
-            \fwrite($resource, $body);
+            $resource = fopen('php://temp', 'rw+');
+            fwrite($resource, $body);
             $body = $resource;
         }
         if (\is_resource($body)) {
@@ -103,7 +103,7 @@ class Stream implements StreamInterface
             $new->writable = isset(self::READ_WRITE_HASH['write'][$meta['mode']]);
             return $new;
         }
-        throw new InvalidArgumentException('Stream:：create（）的第一个参数必须是字符串、资源或StreamInterface');
+        throw new InvalidArgumentException('Stream::create（）的第一个参数必须是字符串、资源或StreamInterface');
     }
 
     /**
@@ -249,7 +249,7 @@ class Stream implements StreamInterface
         }
 
         if (fseek($this->stream, $offset, $whence) === -1) {
-            throw new RuntimeException('当前流信息无法被重置');
+            throw new RuntimeException('当前流信息无法被操作');
         }
     }
 
@@ -336,6 +336,10 @@ class Stream implements StreamInterface
      */
     public function getContents(): string
     {
+        if (!isset($this->stream)) {
+            throw new RuntimeException('资源流无法被读取');
+        }
+
         if (false === $contents = @stream_get_contents($this->stream)) {
             throw new RuntimeException('无法读取流内容: ' . (error_get_last()['message'] ?? ''));
         }

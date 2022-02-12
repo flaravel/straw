@@ -69,8 +69,9 @@ class Uri implements UriInterface
             // 解析
             $parts    = parse_url($uri);
             if (!$parts) {
-                throw new InvalidArgumentException(sprintf('Unable to parse URI: "%s"', $uri));
+                throw new InvalidArgumentException(sprintf('无法解析 URI: "%s"', $uri));
             }
+
             $scheme   = isset($parts['scheme']) ? strtolower($parts['scheme']) : '';
             $host     = $parts['host'] ?? '';
             $port     = $parts['port'] ?? '';
@@ -440,13 +441,23 @@ class Uri implements UriInterface
      */
     #[Pure] public function __toString()
     {
-        $scheme    = $this->getScheme();
-        $authority = $this->getAuthority();
-        $path      = $this->getPath();
-        $query     = $this->getQuery();
-        $query     = $query ? "?{$query}" : '';
-        $fragment  = $this->getFragment();
-        $fragment  = $fragment ? "#{$fragment}" : '';
-        return $scheme . '://' . $authority . $path . $query . $fragment;
+        $uri = '';
+        if ($this->getScheme() !== '') {
+            $uri .= $this->getScheme() . ':';
+        }
+        if ($this->getAuthority() !== '') {
+            $uri .= '//' . $this->getAuthority();
+        }
+        if ($this->getPath() != '') {
+            $uri .= $this->getPath();
+        }
+        if ($this->getQuery() !== '') {
+            $uri .= '?' . $this->getQuery();
+        }
+
+        if ($this->getFragment() !== '') {
+            $uri .= '#' . $this->getFragment();
+        }
+        return $uri;
     }
 }

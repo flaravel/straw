@@ -33,9 +33,9 @@ class Message implements MessageInterface
     protected array $headers = [];
 
     /**
-     * @var StreamInterface
+     * @var ?StreamInterface
      */
-    protected StreamInterface $body;
+    protected ?StreamInterface $body = null;
 
     /**
      * 获取字符串形式的 HTTP 协议版本信息。
@@ -173,7 +173,7 @@ class Message implements MessageInterface
             }
             $this->headers[$name] = $header;
         } else {
-            throw new InvalidArgumentException('Header value can only be of type string');
+            throw new InvalidArgumentException('Header 值只能是字符串类型');
         }
 
         return $this;
@@ -204,7 +204,7 @@ class Message implements MessageInterface
                 array_push($header, $v);
             }
         } else {
-            throw new InvalidArgumentException('Header value can only be of type string');
+            throw new InvalidArgumentException('Header 值只能是字符串类型');
         }
         $this->headers[$name] = $header;
         return $this;
@@ -234,6 +234,9 @@ class Message implements MessageInterface
      */
     public function getBody(): StreamInterface
     {
+        if ($this->body == null) {
+            $this->body = Stream::create();
+        }
         return $this->body;
     }
 

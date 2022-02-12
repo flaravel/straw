@@ -74,7 +74,7 @@ class Psr17Factory implements
      *
      * @return ServerRequestInterface
      */
-    public function createServerRequestFromGlobals():ServerRequestInterface
+    public function fromGlobals():ServerRequestInterface
     {
 
         // 获取请求方式

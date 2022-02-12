@@ -18,7 +18,7 @@ class Context
     public static function capture(): static
     {
         $ctx = new static();
-        $ctx->request = (new Psr17Factory())->createServerRequestFromGlobals();
+        $ctx->request = (new Psr17Factory())->fromGlobals();
         return $ctx;
     }
 }
