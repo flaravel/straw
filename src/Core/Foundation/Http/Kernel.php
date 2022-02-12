@@ -13,6 +13,6 @@ class Kernel implements KernelContract
      */
     public function handle(Context $context)
     {
-        dump($context->request->getBody()->getContents());
+        dump($context->request);
     }
 }

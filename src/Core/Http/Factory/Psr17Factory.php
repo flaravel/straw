@@ -94,7 +94,7 @@ class Psr17Factory implements
 
         // 设置信息头
         foreach ($headers as $name => $value) {
-            $serverRequest->withHeader($name, $value);
+            $serverRequest = $serverRequest->withHeader($name, $value);
         }
 
         $protocol = isset($server['SERVER_PROTOCOL']) ? str_replace('HTTP/', '', $server['SERVER_PROTOCOL']) : '1.1';
