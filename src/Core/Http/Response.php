@@ -109,15 +109,14 @@ class Response extends Message implements ResponseInterface
         string $version = '1.1',
         string $reason = null
     ) {
-        if (!empty($body)) {
+        if ($body !== null && $body !== '') {
             $this->body = Stream::create($body);
         }
 
         $this->statusCode = $status;
 
-        foreach ($headers as $name => $value) {
-            $this->withHeader($name, $value);
-        }
+        $this->setHeaders($headers);
+
         if (null === $reason && isset(self::$statusTexts[$this->statusCode])) {
             $this->reasonPhrase = self::$statusTexts[$status];
         } else {
@@ -165,7 +164,7 @@ class Response extends Message implements ResponseInterface
 
         $new = clone $this;
         $new->statusCode = $code;
-        if (empty($reasonPhrase) && isset(self::$statusTexts[$new->statusCode])) {
+        if (($reasonPhrase == '' || $reasonPhrase == null) && isset(self::$statusTexts[$new->statusCode])) {
             $reasonPhrase = self::$statusTexts[$new->statusCode];
         }
         $new->reasonPhrase = $reasonPhrase;

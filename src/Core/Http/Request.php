@@ -57,9 +57,7 @@ class Request extends Message implements RequestInterface
         $this->uri = $uri;
         $this->method = $method;
 
-        foreach ($headers as $name => $value) {
-            $this->withHeader($name, $value);
-        }
+        $this->setHeaders($headers);
 
         if ($body != null || $body != '') {
             $this->body = Stream::create($body);

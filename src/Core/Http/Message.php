@@ -33,6 +33,11 @@ class Message implements MessageInterface
     protected array $headers = [];
 
     /**
+     * @var array
+     */
+    protected array $headerNames = [];
+
+    /**
      * @var ?StreamInterface
      */
     protected ?StreamInterface $body = null;
@@ -103,7 +108,7 @@ class Message implements MessageInterface
      */
     public function hasHeader($name): bool
     {
-        return isset($this->headers[$name]);
+        return isset($this->headerNames[strtolower($name)]);
     }
 
     /**
@@ -119,10 +124,14 @@ class Message implements MessageInterface
      */
     public function getHeader($name): array
     {
-        if ($this->hasHeader($name)) {
-            return $this->headers[$name];
+        $header = strtolower($name);
+
+        if (!isset($this->headerNames[$header])) {
+            return [];
         }
-        return [];
+        $header = $this->headerNames[$header];
+
+        return $this->headers[$header];
     }
 
     /**
@@ -142,7 +151,7 @@ class Message implements MessageInterface
     public function getHeaderLine($name): string
     {
         if ($this->hasHeader($name)) {
-            return implode(',', $this->headers[$name]);
+            return implode(', ', $this->getHeader($name));
         }
 
         return '';
@@ -164,19 +173,16 @@ class Message implements MessageInterface
      */
     public function withHeader($name, $value): static
     {
-        if (is_scalar($value)) {
-            $this->headers[$name] = [(string)$value];
-        } elseif (is_array($value)) {
-            $header = [];
-            foreach ($value as $v) {
-                array_push($header, $v);
-            }
-            $this->headers[$name] = $header;
-        } else {
-            throw new InvalidArgumentException('Header 值只能是字符串类型');
-        }
+        $value = $this->validateAndTrimHeader($name, $value);
+        $normalized = strtolower($name);
 
-        return $this;
+        $new = clone $this;
+        if (isset($new->headerNames[$normalized])) {
+            unset($new->headers[$new->headerNames[$normalized]]);
+        }
+        $new->headerNames[$normalized] = $name;
+        $new->headers[$name] = $value;
+        return $new;
     }
 
     /**
@@ -196,18 +202,62 @@ class Message implements MessageInterface
      */
     public function withAddedHeader($name, $value): static
     {
-        $header = $this->getHeader($name);
-        if (is_scalar($value)) {
-            array_push($header, (string)$value);
-        } elseif (is_array($value)) {
-            foreach ($value as $v) {
-                array_push($header, $v);
+        $new = clone $this;
+        $new->setHeaders([$name => $value]);
+
+        return $new;
+    }
+
+
+    protected function setHeaders(array $headers): void
+    {
+        foreach ($headers as $header => $value) {
+            if (\is_int($header)) {
+                $header = (string) $header;
             }
-        } else {
-            throw new InvalidArgumentException('Header 值只能是字符串类型');
+            $value = $this->validateAndTrimHeader($header, $value);
+            $normalized = strtolower($header);
+            if (isset($this->headerNames[$normalized])) {
+                $header = $this->headerNames[$normalized];
+                // 如果当前头存在就继续往该头信息添加数据
+                $this->headers[$header] = array_merge($this->headers[$header], $value);
+            } else {
+                $this->headerNames[$normalized] = $header;
+                $this->headers[$header] = $value;
+            }
         }
-        $this->headers[$name] = $header;
-        return $this;
+    }
+
+    private function validateAndTrimHeader($header, $values): array
+    {
+        if (!is_string($header) || 1 !== preg_match("@^[!#$%&'*+.^_`|~0-9A-Za-z-]+$@", $header)) {
+            throw new \InvalidArgumentException('Header name must be an RFC 7230 compatible string.');
+        }
+
+        if (!is_array($values)) {
+            // This is simple, just one value.
+            if ((!is_numeric($values) && !\is_string($values)) || 1 !== preg_match("@^[ \t\x21-\x7E\x80-\xFF]*$@", (string) $values)) {
+                throw new \InvalidArgumentException('Header values must be RFC 7230 compatible strings.');
+            }
+
+            return [\trim((string) $values, " \t")];
+        }
+
+        if (empty($values)) {
+            throw new \InvalidArgumentException('Header values must be a string or an array of strings, empty array given.');
+        }
+
+        // Assert Non empty array
+        $returnValues = [];
+        foreach ($values as $v) {
+            if ((!\is_numeric($v) && !\is_string($v)) || 1 !== \preg_match("@^[ \t\x21-\x7E\x80-\xFF]*$@", (string) $v)) {
+                throw new \InvalidArgumentException('Header values must be RFC 7230 compatible strings.');
+            }
+
+            $returnValues[] = \trim((string) $v, " \t");
+        }
+
+        return $returnValues;
     }
 
     /**
@@ -223,8 +273,14 @@ class Message implements MessageInterface
      */
     public function withoutHeader($name): static
     {
-        unset($this->headers[$name]);
-        return $this;
+        $normalized = strtolower($name);
+        if (!isset($this->headerNames[$normalized])) {
+            return $this;
+        }
+        $header = $this->headerNames[$normalized];
+        $new = clone $this;
+        unset($new->headers[$header], $new->headerNames[$normalized]);
+        return $new;
     }
 
     /**
@@ -254,6 +310,9 @@ class Message implements MessageInterface
      */
     public function withBody(StreamInterface $body): static
     {
+        if ($this->body === $body) {
+            return $this;
+        }
         $new = clone $this;
         $new->body = $body;
 
