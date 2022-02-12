@@ -187,6 +187,10 @@ class Request extends Message implements RequestInterface
      */
     public function withUri(UriInterface $uri, $preserveHost = false): static
     {
+        if ($uri === $this->uri) {
+            return $this;
+        }
+
         $new = clone $this;
         $new->uri = $uri;
 
