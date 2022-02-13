@@ -2,7 +2,6 @@
 
 namespace Straw\Core\Foundation\Http;
 
-use Straw\Core\Http\Stream;
 use Straw\Core\Http\Request;
 use Straw\Core\Http\Response;
 use Straw\Core\Foundation\Application;
@@ -29,6 +28,7 @@ class Kernel implements KernelContract
      */
     public function handle(Request $request): Response
     {
-        return (new Response(500, ['test' => 'name', 'Content-Type' => 'application/json'], json_encode(['name' => '123'])));
+        $body = '<h2>测试</h2>';
+        return (new Response(200, ['test' => 'name', 'Content-Type' => 'text/html; charset=utf-8'], $body));
     }
 }
