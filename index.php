@@ -13,4 +13,6 @@ $app->singleton(
     KernelContract::class,
     Kernel::class
 );
-$app->make(KernelContract::class)->handle(Request::capture());
+$kernel = $app->make(KernelContract::class);
+
+$response = $kernel->handle(Request::capture())->send();

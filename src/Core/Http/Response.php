@@ -186,4 +186,67 @@ class Response extends Message implements ResponseInterface
     {
         return $this->reasonPhrase;
     }
+
+
+    /**
+     * @return $this
+     */
+    public function send(): static
+    {
+        $this->sendHeaders();
+        $this->sendContent();
+
+        if (\function_exists('fastcgi_finish_request')) {
+            fastcgi_finish_request();
+        } elseif (\function_exists('litespeed_finish_request')) {
+            litespeed_finish_request();
+        } elseif (!\in_array(\PHP_SAPI, ['cli', 'phpdbg'], true)) {
+            static::closeOutputBuffers(0, true);
+        }
+
+        return $this;
+    }
+
+    public static function closeOutputBuffers(int $targetLevel, bool $flush): void
+    {
+        $status = ob_get_status(true);
+        $level = \count($status);
+        $flags = \PHP_OUTPUT_HANDLER_REMOVABLE | ($flush ? \PHP_OUTPUT_HANDLER_FLUSHABLE : \PHP_OUTPUT_HANDLER_CLEANABLE);
+
+        while ($level-- > $targetLevel && ($s = $status[$level]) && (!isset($s['del']) ? !isset($s['flags']) || ($s['flags'] & $flags) === $flags : $s['del'])) {
+            if ($flush) {
+                ob_end_flush();
+            } else {
+                ob_end_clean();
+            }
+        }
+    }
+
+    public function sendHeaders(): static
+    {
+        // headers have already been sent by the developer
+        if (headers_sent()) {
+            return $this;
+        }
+
+        // headers
+        foreach ($this->headers as $name => $values) {
+            $replace = 0 === strcasecmp($name, 'Content-Type');
+            foreach ($values as $value) {
+                header($name.': '.$value, $replace, $this->statusCode);
+            }
+        }
+
+        // status
+        header(sprintf('HTTP/%s %s %s', $this->protocolVersion, $this->statusCode, $this->reasonPhrase), true, $this->statusCode);
+
+        return $this;
+    }
+
+    public function sendContent(): static
+    {
+        echo $this->body;
+
+        return $this;
+    }
 }
