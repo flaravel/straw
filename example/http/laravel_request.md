@@ -113,4 +113,6 @@ public static function  createFromBase(SymfonyRequest $request)
 }
 ```
 
+拿到`Request`对象之后,将对象注入到容器，后续控制器的所有操作都直接从容器中拿到该对象了，最后将我们的业务数据通过 `(new Response(200, $header, $data))->send()` 返回给浏览器
+
 总结: Request类的其实就是对$_GET,$_POST,$_FILES,$_SERVER几个超全局变量的高度封装

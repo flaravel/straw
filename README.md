@@ -18,4 +18,5 @@
 
 #### Http请求对象(PSR-7与PSR-17)
 - [Laravel中的Request对象是如何实现的](https://github.com/flaravel/straw/blob/master/example/http/laravel_request.md)
+- [PHP中如何接受HTTP消息，如何返回HTTP消息？](https://github.com/flaravel/straw/blob/master/example/http/simple_request.md)
 - [自动手动封装一个Request类](https://github.com/flaravel/straw/blob/master/example/http/request.md)
