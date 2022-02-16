@@ -4,7 +4,7 @@
 
 #### 学习路线规划：
 - [x] 容器(PSR-11)
-- [ ] Http请求对象(PSR-7与PSR-17)
+- [ ] HTTP(PSR-7与PSR-17)
 - [ ] 路由
 - [ ] 中间件
 - [ ] 配置文件
@@ -16,7 +16,7 @@
 - [在容器中实现对象的依赖注入](https://github.com/flaravel/straw/blob/master/docs/container/container2.md)
 - [在容器中实现对参数的注入](https://github.com/flaravel/straw/blob/master/docs/container/container3.md)
 
-#### Http请求对象(PSR-7与PSR-17)
+#### HTTP(PSR-7与PSR-17)
+- [PHP中如何响应HTTP消息](https://github.com/flaravel/straw/blob/master/docs/http/simple_request.md)
 - [Laravel中的Request对象是如何实现的](https://github.com/flaravel/straw/blob/master/docs/http/laravel_request.md)
-- [PHP中如何接受HTTP消息，如何返回HTTP消息？](https://github.com/flaravel/straw/blob/master/docs/http/simple_request.md)
 - [自动手动封装一个Request类](https://github.com/flaravel/straw/blob/master/docs/http/request.md)

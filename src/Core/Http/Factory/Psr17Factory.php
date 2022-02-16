@@ -215,8 +215,9 @@ class Psr17Factory implements
     private function createUriFromArray(array $server): UriInterface
     {
         $uri = $this->createUri();
-        [$scheme] = explode('/', $server['SERVER_PROTOCOL']);                  // 获取 scheme
-        return $uri->withScheme(strtolower($scheme))->withPort($server['SERVER_PORT'])  // 获取请求端口
+        [$scheme] = explode('/', $server['SERVER_PROTOCOL']);
+        return $uri->withScheme(strtolower($scheme))                                    // 获取 scheme
+                ->withPort($server['SERVER_PORT'])                                      // 获取请求端口
                 ->withHost($server['SERVER_NAME'])                                      // 获取url host 域名/ip
                 ->withPath(current(explode('?', $server['REQUEST_URI'])))      // 获取url path
                 ->withQuery($server['QUERY_STRING'] ?? '');                       // 获取url query
