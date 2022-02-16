@@ -3,13 +3,14 @@
 #### 简介
 中文文档: http://phpfig.p2hp.com
 
-PSR: 通过框架作者或者框架的代表之间讨论，以最低程度的限制，制定一个协作标准，各个框架遵循统一的编码规范，避免各家自行发展的风格阻碍了 PHP 的发展，解决这个程序设计师由来已久的困扰。
-
-简单理解就是一套PHP的设计规范，按照这个规范走，能够更好的让别人能阅读代码，更容易扩展
+PSR: 简单理解就是一套PHP的设计规范，按照这个规范走，能够更好的让别人能阅读代码，更容易扩展
 
 #### PSR-7 与 PSR-17
-- PSR-7: HTTP消息接口规范
+
+学习资料: https://github.com/Nyholm/psr7
+
+- PSR-7: HTTP消息接口规范 
+  - 通过 `composer require psr/http-message` 安装Http消息接口
 - PSR-17: HTTP对象的工厂通用标准
-
-
+  - 通过 `composer require psr/http-factory` 安装Http消息工厂
 
